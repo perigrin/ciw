@@ -12,26 +12,44 @@ has queue => (
     is      => 'ro',
     lazy    => 1,
     default => sub { [] },
-    handles => { '_find_job' => 'first', }
+    handles => {
+        '_find_job'   => 'first',
+        '_delete_job' => 'delete',
+    }
 );
 
-sub find_job {
-    my ( $self, $role ) = @_;
-    my $scope = $self->new_scope;
-    $self->_find_job( sub { $self->lookup($_)->does($role) } );
+sub _get_idx_for_id {
+    my ( $self, $id ) = @_;
+    my $q = $self->queue;
+    ( $q->[$_] eq $id && return $_ ) for ( 0 ... @$q - 1 );
+    return;
 }
 
-sub lock      { ... }
-sub unlock    { ... }
-sub completed { ... }
+sub find_job_by_id {
+    my ( $self, $id ) = @_;
+    return unless $self->_find_job( sub { $_ eq $id } );
+    my $scope = $self->new_scope;
+    return $self->lookup($id);
+}
+
+sub lock   { ... }
+sub unlock { ... }
+
+sub completed {
+    my ( $self, $id ) = @_;
+    my $scope = $self->new_scope;
+    my $job   = $self->find_job_by_id($id);
+    $self->delete($job);
+    $self->_delete_job( $self->_get_idx_for_id($id) );
+}
 
 sub insert {
-    my $self  = shift;
+    my ( $self, $object ) = @_;
     my $scope = $self->new_scope;
-    return map {
-        my $id = $self->store($_);
-        push @{ $self->queue }, $id;
-    } @_;
+    $self->store($object);
+    my $id = $self->object_to_id($object);
+    push @{ $self->queue }, $id;
+    return $id;
 }
 
 __PACKAGE__->meta->make_immutable;

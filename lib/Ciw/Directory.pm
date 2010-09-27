@@ -11,7 +11,16 @@ has directory => (
     isa      => 'KiokuX::Model',
     is       => 'ro',
     required => 1,
-    handles  => [qw(lookup new_scope store root_set)]
+    handles  => [
+        qw(
+          lookup
+          object_to_id
+          delete
+          new_scope
+          store
+          root_set
+          )
+    ]
 );
 
 1;

@@ -25,6 +25,9 @@ lives_ok { $q = Ciw::Backend::Memory->new( directory => $dir ) }
     sub execute { ::pass('executed') }
 }
 
-ok( $q->insert( Ciw::Test::Job->new() ), 'inserted a job' );
-
+ok( my $id  = $q->insert( Ciw::Test::Job->new() ), 'inserted a job' );
+ok( my $job = $q->find_job_by_id($id),             'the job exists' );
+$job->execute;
+ok( $q->completed($id),       'job completed' );
+ok( !$q->find_job_by_id($id), 'the job is gone' );
 done_testing;

@@ -5,7 +5,13 @@ use namespace::autoclean;
 
 with qw( Ciw::Directory );
 
-requires qw(insert find_job lock unlock completed);
+requires qw(
+    insert 
+    find_job_by_id
+    lock 
+    unlock 
+    completed
+);
 
 1;
 __END__
